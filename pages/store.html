@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Masrawy  - المتجر</title>
+  <link rel="stylesheet" href="../style.css">
+  <script src="https://js.stripe.com/v3/"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="app-layout">
+
+  <header>
+    <h1 onclick="window.location.href='../index.html'">Masrawy </h1>
+    <nav class="nav-links">
+      <a href="../index.html" class="nav-btn">الرئيسية</a>
+      <a href="store.html" class="nav-btn active">المتجر</a>
+      <a href="cv.html" class="nav-btn">إنشاء CV</a>
+      <a href="print.html" class="nav-btn">طباعة</a>
+      <a href="contact.html" class="nav-btn">التواصل</a>
+      <a href="account.html" class="nav-btn">حسابي</a>
+      <a href="admin.html" id="admin-tab-btn" class="nav-btn hidden admin-btn">الأدمن</a>
+      <button class="nav-btn cart-btn" onclick="toggleCart()">🛒 <span id="cart-count" class="cart-badge">0</span></button>
+    </nav>
+  </header>
+
+  <div id="cart-drawer" class="cart-drawer">
+    <div class="cart-header"><h2>سلة الشراء</h2><button onclick="toggleCart()" class="close-btn">✕</button></div>
+    <div id="cart-items-list" class="cart-items-container"></div>
+    <div class="cart-footer">
+      <div class="cart-total-row"><span>الإجمالي:</span><span id="cart-total-price">0.00 ج.م</span></div>
+      <div class="form-group" style="margin: 12px 0;">
+        <label style="font-size: 12px; color: #9ca3af;">طريقة الدفع:</label>
+        <select id="payment-method-select" class="form-control" onchange="validatePaymentMethods()">
+          <option value="online">💳 دفع إلكتروني (Stripe Sandbox)</option>
+          <option value="cod" id="opt-cod">💵 الدفع عند الاستلام (COD)</option>
+        </select>
+        <p id="cv-payment-notice" class="hidden" style="color: #f59e0b; font-size: 11px; margin-top: 4px;">⚠️ طلبات الـ CV والطباعة تتطلب الدفع الإلكتروني فقط.</p>
+      </div>
+      <button class="btn-submit" onclick="processCartCheckout()">إتمام الطلب والدفع</button>
+    </div>
+  </div>
+
+  <main class="container">
+    <h2 class="section-title">المتجر - المنتجات والإكسسوارات</h2>
+    <div id="products-grid" class="grid-3"></div>
+  </main>
+
+  <script src="../app.js"></script>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة التحكم | Masrawy  Admin</title>
+  <link rel="stylesheet" href="..style.css">
+  <style>
+    /* Inline Styles for Admin Dashboard Tabs & Controls */
+    .admin-container {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 16px;
+    }
+    .admin-tabs-nav {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #27272a;
+    }
+    .admin-nav-btn {
+      background: #1c1917;
+      color: #a8a29e;
+      border: 1px solid #27272a;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+    .admin-nav-btn:hover {
+      border-color: var(--primary, #d97706);
+      color: #fff;
+    }
+    .admin-nav-btn.active {
+      background: var(--primary, #d97706);
+      color: #fff;
+      border-color: var(--primary, #d97706);
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: #1c1917;
+      border: 1px solid #27272a;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: right;
+    }
+    .stat-card h3 {
+      margin: 8px 0 0 0;
+      font-size: 24px;
+      color: #f59e0b;
+    }
+    .admin-tab-content {
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    .hidden {
+      display: none !important;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body style="background: #0c0a09; color: #f5f5f4; font-family: system-ui, sans-serif;">
+
+  <!-- TOP NAVBAR -->
+  <header style="background: #1c1917; border-bottom: 1px solid #27272a; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <h2 style="margin: 0; color: #f59e0b; font-size: 20px;">Masrawy  Admin ⚙️</h2>
+    </div>
+    <div style="display: flex; gap: 12px; align-items: center;">
+      <a href="../index.html" style="color: #a8a29e; text-decoration: none; font-size: 14px;">الرئيسية 🏠</a>
+      <a href="contact.html" style="color: #a8a29e; text-decoration: none; font-size: 14px;">الدعم والرسائل 💬</a>
+      <button onclick="logout()" style="background: #ef4444; color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer;">تسجيل الخروج</button>
+    </div>
+  </header>
+
+  <!-- ADMIN DASHBOARD CONTAINER -->
+  <main class="admin-container">
+
+    <!-- NAVIGATION TABS -->
+    <nav class="admin-tabs-nav">
+      <button id="btn-tab-analytics" class="admin-nav-btn active" onclick="switchAdminTab('analytics')">📊 التقارير والأرباح</button>
+      <button id="btn-tab-products" class="admin-nav-btn" onclick="switchAdminTab('products')">📦 إدارة المنتجات والمخزون</button>
+      <button id="btn-tab-cvs" class="admin-nav-btn" onclick="switchAdminTab('cvs')">📄 طلبات السيرة الذاتية</button>
+      <button id="btn-tab-orders" class="admin-nav-btn" onclick="switchAdminTab('orders')">🛍️ كل الطلبات والرسائل</button>
+      <button id="btn-tab-users" class="admin-nav-btn" onclick="switchAdminTab('users')">👥 إدارة المستخدمين</button>
+    </nav>
+
+    <!-- TAB 1: ANALYTICS & REVENUE -->
+    <section id="tab-analytics" class="admin-tab-content">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span style="font-size: 13px; color: #a8a29e;">إجمالي الأرباح المحصلة</span>
+          <h3 id="stat-total-revenue">0.00 ج.م</h3>
+        </div>
+        <div class="stat-card">
+          <span style="font-size: 13px; color: #a8a29e;">إجمالي الطلبات المسجلة</span>
+          <h3 id="stat-total-orders">0</h3>
+        </div>
+        <div class="stat-card">
+          <span style="font-size: 13px; color: #a8a29e;">المنتج الأكثر مبيعاً</span>
+          <h3 id="stat-best-product" style="font-size: 16px; margin-top: 12px; color: #60a5fa;">-</h3>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: PRODUCTS & STOCK MANAGEMENT -->
+    <section id="tab-products" class="admin-tab-content hidden">
+      <div class="card" style="background: #1c1917; border: 1px solid #27272a; padding: 20px; border-radius: 12px; margin-bottom: 24px;">
+        <h4 style="margin: 0 0 12px 0; color: #f59e0b;">إضافة منتج جديد للمتجر</h4>
+        <form id="add-product-form" onsubmit="createNewProduct(event)">
+          <div class="form-grid">
+            <input type="text" id="new-prod-title" placeholder="اسم المنتج" required style="padding: 10px; background: #27272a; border: 1px solid #3f3f46; color: #fff; border-radius: 6px;">
+            <input type="number" id="new-prod-price" placeholder="السعر (ج.م)" required style="padding: 10px; background: #27272a; border: 1px solid #3f3f46; color: #fff; border-radius: 6px;">
+            <input type="number" id="new-prod-stock" placeholder="الكمية في المخزون" required style="padding: 10px; background: #27272a; border: 1px solid #3f3f46; color: #fff; border-radius: 6px;">
+            <input type="url" id="new-prod-img" placeholder="رابط صورة المنتج (URL)" required style="padding: 10px; background: #27272a; border: 1px solid #3f3f46; color: #fff; border-radius: 6px;">
+          </div>
+          <button type="submit" class="btn-submit" style="margin-top: 12px; width: auto; padding: 10px 24px;">إضافة المنتج</button>
+        </form>
+      </div>
+
+      <h4 style="color: #a8a29e; margin-bottom: 12px;">قائمة المنتجات الحالية والمخزون</h4>
+      <div id="admin-products-list"></div>
+    </section>
+
+    <!-- TAB 3: CV SUBMISSIONS -->
+    <section id="tab-cvs" class="admin-tab-content hidden">
+      <h4 style="color: #a8a29e; margin-bottom: 12px;">طلبات تصميم ومواقع السيرة الذاتية</h4>
+      <div id="admin-cvs-list"></div>
+    </section>
+
+    <!-- TAB 4: ALL ORDERS & MESSAGING -->
+    <section id="tab-orders" class="admin-tab-content hidden">
+      <h4 style="color: #a8a29e; margin-bottom: 12px;">سجل الطلبات الكامل والمحادثات</h4>
+      <div id="admin-orders-container"></div>
+    </section>
+
+    <!-- TAB 5: USER MANAGEMENT -->
+    <section id="tab-users" class="admin-tab-content hidden">
+      <h4 style="color: #a8a29e; margin-bottom: 12px;">حسابات العملاء وسجل الإنفاق</h4>
+      <div id="admin-users-list"></div>
+    </section>
+
+  </main>
+
+  <!-- SUPABASE & CORE JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../app.js"></script>
+</body>
+</html>

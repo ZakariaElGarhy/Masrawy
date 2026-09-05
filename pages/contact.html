@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Masrawy  - التواصل والنطاقات</title>
+  <script src="https://js.stripe.com/v3/"></script>
+  <link rel="stylesheet" href="../style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="app-layout">
+
+  <header>
+    <h1 onclick="window.location.href='../index.html'">Masrawy </h1>
+    <nav class="nav-links">
+      <a href="../index.html" class="nav-btn">الرئيسية</a>
+      <a href="store.html" class="nav-btn">المتجر</a>
+      <a href="cv.html" class="nav-btn">إنشاء CV</a>
+      <a href="print.html" class="nav-btn">طباعة</a>
+      <a href="contact.html" class="nav-btn active">التواصل</a>
+      <a href="account.html" class="nav-btn">حسابي</a>
+      <a href="admin.html" id="admin-tab-btn" class="nav-btn hidden admin-btn">الأدمن</a>
+      <button class="nav-btn cart-btn" onclick="toggleCart()">🛒 <span id="cart-count" class="cart-badge">0</span></button>
+    </nav>
+  </header>
+
+  <div id="cart-drawer" class="cart-drawer">
+    <div class="cart-header"><h2>سلة الشراء</h2><button onclick="toggleCart()" class="close-btn">✕</button></div>
+    <div id="cart-items-list" class="cart-items-container"></div>
+    <div class="cart-footer">
+      <div class="cart-total-row"><span>الإجمالي:</span><span id="cart-total-price">0.00 ج.م</span></div>
+      <button class="btn-submit" onclick="processCartCheckout()">إتمام الطلب والدفع</button>
+    </div>
+  </div>
+
+  <main class="container">
+    <div class="card contact-card">
+      <h2 class="section-title">التواصل وإرسال النطاقات (Masrawy Direct)</h2>
+      <form onsubmit="handleDirectContact(event)">
+        <div class="form-group">
+          <label>اختر رقم الطلب الخاص بك:</label>
+          <select id="contact-order-select" required><option value="">-- اختر رقم الطلب / CV ID --</option></select>
+        </div>
+        <div class="form-group">
+          <label>اسم النطاق أو التفاصيل المطلوبة:</label>
+          <textarea id="contact-message-body" rows="4" placeholder="اكتب اسم النطاق أو الملاحظات..." required></textarea>
+        </div>
+        <button type="submit" class="btn-submit">إرسال التفاصيل للإدارة</button>
+      </form>
+    </div>
+  </main>
+
+  <div id="my-orders-container"></div>
+
+  <script src="../app.js"></script>
+</body>
+</html>

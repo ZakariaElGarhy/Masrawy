@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Masrawy  - تصميم CV</title>
+  <link rel="stylesheet" href="../style.css">
+  <script src="https://js.stripe.com/v3/"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="app-layout">
+
+  <header>
+    <h1 onclick="window.location.href='../index.html'">Masrawy </h1>
+    <nav class="nav-links">
+      <a href="../index.html" class="nav-btn">الرئيسية</a>
+      <a href="store.html" class="nav-btn">المتجر</a>
+      <a href="cv.html" class="nav-btn active">إنشاء CV</a>
+      <a href="print.html" class="nav-btn">طباعة</a>
+      <a href="contact.html" class="nav-btn">التواصل</a>
+      <a href="account.html" class="nav-btn">حسابي</a>
+      <a href="admin.html" id="admin-tab-btn" class="nav-btn hidden admin-btn">الأدمن</a>
+      <button class="nav-btn cart-btn" onclick="toggleCart()">🛒 <span id="cart-count" class="cart-badge">0</span></button>
+    </nav>
+  </header>
+
+  <div id="cart-drawer" class="cart-drawer">
+    <div class="cart-header"><h2>سلة الشراء</h2><button onclick="toggleCart()" class="close-btn">✕</button></div>
+    <div id="cart-items-list" class="cart-items-container"></div>
+    <div class="cart-footer">
+      <div class="cart-total-row"><span>الإجمالي:</span><span id="cart-total-price">0.00 ج.م</span></div>
+      <div class="form-group" style="margin: 12px 0;">
+        <label style="font-size: 12px; color: #9ca3af;">طريقة الدفع:</label>
+        <select id="payment-method-select" class="form-control" onchange="validatePaymentMethods()">
+          <option value="online">💳 دفع إلكتروني (Stripe Sandbox)</option>
+          <option value="cod" id="opt-cod">💵 الدفع عند الاستلام (COD)</option>
+        </select>
+        <p id="cv-payment-notice" class="hidden" style="color: #f59e0b; font-size: 11px; margin-top: 4px;">⚠️ طلبات الـ CV والطباعة تتطلب الدفع الإلكتروني فقط.</p>
+      </div>
+      <button class="btn-submit" onclick="processCartCheckout()">إتمام الطلب والدفع</button>
+    </div>
+  </div>
+
+  <main class="container">
+    <div id="cv-plans-container" class="grid-3">
+      <div class="card plan-card">
+        <div class="plan-badge">Basic</div>
+        <h3>Normal Website CV</h3>
+        <div class="plan-price">300 <span>EGP</span></div>
+        <p class="plan-desc">صفحة شخصية بسيطة لعرض الخبرات والمهارات بشكل أنيق.</p>
+        <ul class="plan-features">
+          <li>✓ قالب بسيط واستجابة للشاشات</li>
+          <li>✓ رابط فرعي (Masrawy Subdomain)</li>
+          <li>✓ تخصيص الألوان والمهارات</li>
+        </ul>
+        <button class="btn-submit" onclick="selectCvPlan('normal', 300)">اختيار الخطة (300 EGP)</button>
+      </div>
+
+      <div class="card plan-card plan-featured">
+        <div class="plan-badge popular">الأكثر طلباً</div>
+        <h3>Premium Website CV</h3>
+        <div class="plan-price">600 <span>EGP</span></div>
+        <p class="plan-desc">موقع كامل مع رفع صورة شخصية وقسم مشاريع.</p>
+        <ul class="plan-features">
+          <li>✓ جميع مميزات الخطة العادية</li>
+          <li>✓ رفع صورة شخصية (Avatar)</li>
+          <li>✓ قسم المشاريع والخبرات السابقة</li>
+        </ul>
+        <button class="btn-submit" onclick="selectCvPlan('premium', 600)">اختيار الخطة (600 EGP)</button>
+      </div>
+
+      <div class="card plan-card plan-pro">
+        <div class="plan-badge pro">احترافي VIP</div>
+        <h3>Professional Website CV</h3>
+        <div class="plan-price">3,000 <span>EGP</span></div>
+        <p class="plan-desc">موقع شخصي بنطاقك الخاص (.com) وتعديلات شاملة.</p>
+        <ul class="plan-features">
+          <li>✓ <b>نطاق خاص مجاني (YourName.com)</b></li>
+          <li>✓ <b>دعم فني وتحديثات لمدة 1 سنة</b></li>
+        </ul>
+        <button class="btn-submit btn-gold" onclick="selectCvPlan('professional', 3000)">اختيار الخطة (3000 EGP)</button>
+      </div>
+    </div>
+
+    <div id="cv-builder-studio" class="hidden">
+      <div class="builder-top-bar">
+        <button class="btn-change-plan" onclick="backToCvPlans()">⚙️ تغيير الخطة / Change Plan</button>
+        <span id="selected-plan-tag" class="selected-plan-badge"></span>
+      </div>
+
+      <div class="grid-2 builder-layout">
+        <div class="card builder-panel">
+          <h3 class="section-title">تخصيص بيانات موقعك</h3>
+          <div class="form-group" id="group-cv-photo"><label>الصورة الشخصية</label><input type="file" id="cv-photo-file" accept="image/*" onchange="handleCvPhotoUpload(event)"></div>
+          <div class="form-group"><label>الاسم الكامل</label><input type="text" id="cv-name" oninput="renderWebCvPreview()"></div>
+          <div class="form-group"><label>المسمى الوظيفي</label><input type="text" id="cv-title" oninput="renderWebCvPreview()"></div>
+          <div class="form-group"><label>نبذة مختصرة</label><textarea id="cv-bio" rows="3" oninput="renderWebCvPreview()"></textarea></div>
+          <div class="form-group"><label>البريد والتواصل</label><input type="text" id="cv-contact" oninput="renderWebCvPreview()"></div>
+          <div class="form-group"><label>المهارات</label><input type="text" id="cv-skills" oninput="renderWebCvPreview()"></div>
+          <div class="form-group hidden" id="group-custom-domain"><label>النطاق الخاص</label><input type="text" id="cv-domain"></div>
+          <div class="form-group"><label>اللون الرئيسي</label><input type="color" id="cv-color" value="#d97706" class="color-picker" oninput="renderWebCvPreview()"></div>
+          <button class="btn-submit" onclick="submitCvWebsiteOrder()">تأكيد وإضافة السيرة للسلة</button>
+        </div>
+
+        <div class="web-cv-preview-frame">
+          <div class="browser-header">
+            <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+            <span id="preview-url-bar" class="url-bar">https://masrawy.site/preview</span>
+          </div>
+          <div id="web-cv-preview-content" class="web-cv-body"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="../app.js"></script>
+  <script>
+    let selectedCvPlan = null;
+    let selectedCvPrice = 0;
+    let uploadedPhotoUrl = "";
+
+    function selectCvPlan(plan, price) {
+      selectedCvPlan = plan;
+      selectedCvPrice = price;
+      document.getElementById('cv-plans-container').classList.add('hidden');
+      document.getElementById('cv-builder-studio').classList.remove('hidden');
+
+      const domainGroup = document.getElementById('group-custom-domain');
+      const photoGroup = document.getElementById('group-cv-photo');
+      const planTag = document.getElementById('selected-plan-tag');
+
+      planTag.innerText = `الخطة المختارة: ${plan.toUpperCase()} (${price} EGP)`;
+      if (plan === 'professional') { domainGroup.classList.remove('hidden'); photoGroup.classList.remove('hidden'); }
+      else if (plan === 'premium') { domainGroup.classList.add('hidden'); photoGroup.classList.remove('hidden'); }
+      else { domainGroup.classList.add('hidden'); photoGroup.classList.add('hidden'); }
+
+      renderWebCvPreview();
+    }
+
+    function backToCvPlans() {
+      document.getElementById('cv-builder-studio').classList.add('hidden');
+      document.getElementById('cv-plans-container').classList.remove('hidden');
+    }
+
+    function handleCvPhotoUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) { uploadedPhotoUrl = e.target.result; renderWebCvPreview(); };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function renderWebCvPreview() {
+      const name = document.getElementById('cv-name')?.value || 'اسمك الكامل';
+      const title = document.getElementById('cv-title')?.value || 'المسمى الوظيفي';
+      const bio = document.getElementById('cv-bio')?.value || 'نبذة تعريفية...';
+      const contact = document.getElementById('cv-contact')?.value || 'email@example.com';
+      const skillsText = document.getElementById('cv-skills')?.value || '';
+      const color = document.getElementById('cv-color')?.value || '#d97706';
+      const previewContainer = document.getElementById('web-cv-preview-content');
+
+      if (!previewContainer) return;
+      let photoHtml = uploadedPhotoUrl && selectedCvPlan !== 'normal' ? `<img src="${uploadedPhotoUrl}" class="web-cv-avatar" style="border-color:${color};">` : '';
+      let skillsHtml = skillsText.split(',').map(s => s.trim() ? `<span class="web-cv-tag" style="background:${color}18; color:${color}; border: 1px solid ${color}40;">${s.trim()}</span>` : '').join('');
+
+      previewContainer.innerHTML = `
+        <div class="web-cv-hero">${photoHtml}<h1 style="color:${color}; font-size:22px;">${name}</h1><h3>${title}</h3><p class="web-cv-bio">${bio}</p><div>📧 ${contact}</div></div>
+        <div class="web-cv-section"><h4 style="color:${color};">⚡ المهارات</h4><div class="web-cv-tags-wrapper">${skillsHtml}</div></div>
+      `;
+    }
+
+    function submitCvWebsiteOrder() {
+      if (!selectedCvPlan) return alert('الرجاء اختيار خطة أولاً');
+      const cvCartItem = {
+        id: `cv_${selectedCvPlan}_${Date.now()}`,
+        title: `موقع CV - خطة ${selectedCvPlan.toUpperCase()}`,
+        price: selectedCvPrice,
+        qty: 1,
+        isCv: true,
+        details: {
+          full_name: document.getElementById('cv-name').value,
+          job_title: document.getElementById('cv-title').value,
+          skills: document.getElementById('cv-skills').value,
+          primary_color: document.getElementById('cv-color').value,
+          bio: document.getElementById('cv-bio').value,
+          plan_tier: selectedCvPlan
+        }
+      };
+      cart.push(cvCartItem);
+      saveCart();
+      toggleCart();
+    }
+  </script>
+</body>
+</html>

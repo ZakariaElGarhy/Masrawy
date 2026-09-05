@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Masrawy  - طباعة</title>
+  <link rel="stylesheet" href="../style.css">
+  <script src="https://js.stripe.com/v3/"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+</head>
+<body class="app-layout">
+
+  <header>
+    <h1 onclick="window.location.href='../index.html'">Masrawy </h1>
+    <nav class="nav-links">
+      <a href="../index.html" class="nav-btn">الرئيسية</a>
+      <a href="store.html" class="nav-btn">المتجر</a>
+      <a href="cv.html" class="nav-btn">إنشاء CV</a>
+      <a href="print.html" class="nav-btn active">طباعة</a>
+      <a href="contact.html" class="nav-btn">التواصل</a>
+      <a href="account.html" class="nav-btn">حسابي</a>
+      <a href="admin.html" id="admin-tab-btn" class="nav-btn hidden admin-btn">الأدمن</a>
+      <button class="nav-btn cart-btn" onclick="toggleCart()">🛒 <span id="cart-count" class="cart-badge">0</span></button>
+    </nav>
+  </header>
+
+  <div id="cart-drawer" class="cart-drawer">
+    <div class="cart-header"><h2>سلة الشراء</h2><button onclick="toggleCart()" class="close-btn">✕</button></div>
+    <div id="cart-items-list" class="cart-items-container"></div>
+    <div class="cart-footer">
+      <div class="cart-total-row"><span>الإجمالي:</span><span id="cart-total-price">0.00 ج.م</span></div>
+      <button class="btn-submit" onclick="processCartCheckout()">إتمام الطلب والدفع</button>
+    </div>
+  </div>
+
+  <main class="container">
+    <div class="card">
+      <h3>خدمة طباعة المستندات - Masrawy</h3>
+      <div class="form-group" style="margin-top: 16px;">
+        <label>اختر الملفات (PDF / صور)</label>
+        <input type="file" id="print-files" multiple accept=".pdf,image/*" onchange="calculatePrintPrice()">
+      </div>
+      <div class="form-group">
+        <label>نوع الطباعة</label>
+        <select id="print-color" onchange="calculatePrintPrice()">
+          <option value="bw">أبيض وأسود (2 EGP / صفحة)</option>
+          <option value="color">ألوان (10 EGP / صفحة)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>عدد النسخ</label>
+        <input type="number" id="print-copies" value="1" min="1" onchange="calculatePrintPrice()">
+      </div>
+      <div id="print-calc-summary" class="card" style="background: #1f2937; margin: 16px 0; padding: 12px;">
+        <div style="display: flex; justify-content: space-between;"><span>عدد الصفحات التقديري:</span><strong id="print-page-count">0 صفحة</strong></div>
+        <div style="display: flex; justify-content: space-between; color: #f59e0b; margin-top: 8px;"><span>إجمالي التكلفة:</span><strong id="print-total-price">0.00 EGP</strong></div>
+      </div>
+      <button class="btn-submit" onclick="submitPrintOrderToCart()">إضافة الطباعة للسلة والدفع أونلاين</button>
+    </div>
+  </main>
+
+  <script src="../app.js"></script>
+  <script>
+    if (window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    let estimatedTotalPages = 0; let estimatedPrintCost = 0;
+
+    async function calculatePrintPrice() {
+      const files = document.getElementById('print-files')?.files;
+      const colorMode = document.getElementById('print-color')?.value || 'bw';
+      const copies = parseInt(document.getElementById('print-copies')?.value || '1', 10);
+      if (!files || files.length === 0) { estimatedTotalPages = 0; estimatedPrintCost = 0; updatePrintSummaryUI(); return; }
+
+      let totalPages = 0;
+      for (let file of files) {
+        if (file.type === 'application/pdf') {
+          try {
+            const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+            totalPages += pdf.numPages;
+          } catch { totalPages += 1; }
+        } else { totalPages += 1; }
+      }
+      estimatedTotalPages = totalPages * copies;
+      estimatedPrintCost = estimatedTotalPages * (colorMode === 'color' ? 10 : 2);
+      updatePrintSummaryUI();
+    }
+
+    function updatePrintSummaryUI() {
+      document.getElementById('print-page-count').innerText = `${estimatedTotalPages} صفحة`;
+      document.getElementById('print-total-price').innerText = `${estimatedPrintCost.toFixed(2)} EGP`;
+    }
+
+    async function submitPrintOrderToCart() {
+      const files = document.getElementById('print-files')?.files;
+      if (!files || files.length === 0) return alert('الرجاء اختيار ملف أولاً.');
+      if (estimatedPrintCost <= 0) await calculatePrintPrice();
+
+      cart.push({
+        id: `print_${Date.now()}`,
+        title: `طلب طباعة (${estimatedTotalPages} صفحة)`,
+        price: estimatedPrintCost,
+        qty: 1,
+        isCv: true,
+        details: { copies: document.getElementById('print-copies').value, color_mode: document.getElementById('print-color').value }
+      });
+      saveCart();
+      toggleCart();
+    }
+  </script>
+</body>
+</html>
