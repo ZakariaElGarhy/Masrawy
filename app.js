@@ -662,7 +662,7 @@ async function initiateStripeCheckout(items) {
   }));
 
   try {
-    const { data, error } = await supabaseClient.functions.invoke('create-checkout', {
+    const { data, error } = await supabaseClient.functions.invoke('create-stripe-checkout', {
       body: { items: lineItems, orderId: 'pending_' + Date.now(), returnUrl }
     });
 
